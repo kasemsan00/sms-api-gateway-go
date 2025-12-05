@@ -14,6 +14,7 @@ import (
 	"api-gateway-go/internal/repository"
 	"api-gateway-go/internal/router"
 	"api-gateway-go/internal/service"
+	"api-gateway-go/internal/socket"
 	"api-gateway-go/pkg/logger"
 
 	"github.com/gofiber/fiber/v2"
@@ -88,7 +89,29 @@ func main() {
 	}
 	defer crontabService.Stop()
 
-	// Suppress unused variable warnings - these will be used when more handlers are added
+	// Initialize Socket.IO hub
+	socketHub, err := socket.NewHub(
+		cfg,
+		redis,
+		roomService,
+		userService,
+		chatService,
+		carService,
+		linkService,
+		roomRepo,
+		userRepo,
+		chatRepo,
+	)
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to initialize Socket.IO hub")
+	} else {
+		// Start Socket.IO hub
+		if err := socketHub.Start(); err != nil {
+			log.Warn().Err(err).Msg("Failed to start Socket.IO hub")
+		}
+	}
+
+	// Suppress unused variable warnings
 	_ = smsService
 
 	// Create Fiber app
@@ -114,6 +137,11 @@ func main() {
 	app.Use(recover.New())
 	app.Use(middleware.CORSMiddleware())
 	app.Use(middleware.LoggerMiddleware())
+
+	// Setup Socket.IO routes
+	if socketHub != nil {
+		socket.SetupSocketIO(app, socketHub)
+	}
 
 	// Initialize handlers
 	handlers := &router.Handlers{
@@ -148,11 +176,11 @@ func main() {
 	}()
 
 	// Graceful shutdown
-	gracefulShutdown(app, db, redis, crontabService)
+	gracefulShutdown(app, db, redis, crontabService, socketHub)
 }
 
 // gracefulShutdown handles graceful shutdown of the application
-func gracefulShutdown(app *fiber.App, db *config.Database, redis *config.RedisManager, crontab *service.CrontabService) {
+func gracefulShutdown(app *fiber.App, db *config.Database, redis *config.RedisManager, crontab *service.CrontabService, socketHub *socket.Hub) {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
@@ -163,19 +191,27 @@ func gracefulShutdown(app *fiber.App, db *config.Database, redis *config.RedisMa
 	log.Info().Msg("Stopping cron jobs...")
 	crontab.Stop()
 
-	// Phase 2: Close Redis connections
+	// Phase 2: Stop Socket.IO
+	if socketHub != nil {
+		log.Info().Msg("Stopping Socket.IO...")
+		if err := socketHub.Stop(); err != nil {
+			log.Error().Err(err).Msg("Error stopping Socket.IO")
+		}
+	}
+
+	// Phase 3: Close Redis connections
 	if redis != nil {
 		log.Info().Msg("Closing Redis connections...")
 		redis.Close()
 	}
 
-	// Phase 3: Close database pool
+	// Phase 4: Close database pool
 	if db != nil {
 		log.Info().Msg("Closing database connection pool...")
 		db.Close()
 	}
 
-	// Phase 4: Shutdown HTTP server
+	// Phase 5: Shutdown HTTP server
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

@@ -3,7 +3,7 @@
 > แผนการแปลง API Gateway จาก Node.js Express เป็น Golang (Fiber)  
 > **วันที่สร้าง**: 2025-12-05  
 > **อัพเดทล่าสุด**: 2025-12-05  
-> **สถานะ**: 🚧 In Progress (Phase 1-4 Complete)
+> **สถานะ**: 🚧 In Progress (Phase 1-5 Complete)
 
 ---
 
@@ -15,7 +15,7 @@
 | **Phase 2** | Core Services (14 services)                                                | ✅ Complete |
 | **Phase 3** | HTTP Handlers (15 handlers)                                                | ✅ Complete |
 | **Phase 4** | Middleware & Routing (Auth, CORS, Logger, Router)                          | ✅ Complete |
-| **Phase 5** | WebSocket/Socket.IO Implementation                                         | ⏳ Pending  |
+| **Phase 5** | WebSocket/Socket.IO Implementation                                         | ✅ Complete |
 | **Phase 6** | LiveKit Webhook Processing                                                 | ⏳ Pending  |
 | **Phase 7** | Testing & Integration                                                      | ⏳ Pending  |
 | **Phase 8** | Documentation & Deployment                                                 | ⏳ Pending  |
@@ -52,6 +52,14 @@
 **Middleware (3 files):**
 
 - `auth_middleware.go`, `cors_middleware.go`, `logger_middleware.go`
+
+**Socket.IO (4 files):**
+
+- `internal/socket/hub.go` - Main Socket.IO hub with namespace management
+- `internal/socket/event_manager.go` - Cross-instance event management via Redis
+- `internal/socket/state_manager.go` - Socket session state management
+- `internal/socket/constants.go` - Event names and configuration
+- `internal/socket/fiber_adapter.go` - Fiber integration
 
 **Router & Utils:**
 
@@ -717,7 +725,15 @@ type CrontabService interface {
 
 ---
 
-## �🔌 Phase 5: WebSocket/Socket.IO Implementation (Week 5-6) ⏳ PENDING
+## 🔌 Phase 5: WebSocket/Socket.IO Implementation (Week 5-6) ✅ COMPLETE
+
+> **สถานะ**: ✅ Implemented with go-socket.io library
+>
+> - `hub.go` - Main Socket.IO server with all namespaces
+> - `event_manager.go` - Redis pub/sub for cross-instance events
+> - `state_manager.go` - Session state management
+> - `constants.go` - Event names and configuration
+> - `fiber_adapter.go` - Fiber HTTP integration
 
 ### 5.1 WebSocket Architecture Decision
 
