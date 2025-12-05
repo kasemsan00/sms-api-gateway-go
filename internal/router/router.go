@@ -29,6 +29,7 @@ type Handlers struct {
 }
 
 // SetupRoutes configures all routes for the application
+// Routes are aligned with Node.js API Gateway
 func SetupRoutes(
 	app *fiber.App,
 	handlers *Handlers,
@@ -39,170 +40,174 @@ func SetupRoutes(
 	livekitMgr *config.LiveKitManager,
 	recordRepo *repository.RecordRepository,
 ) {
-	// System routes
+	// ============================================
+	// System routes (from index.routes.js)
+	// ============================================
 	app.Get("/", handlers.System.Root)
 	app.Get("/health", handlers.System.HealthCheck)
-	app.Get("/status", handlers.System.GetStatus)
-	app.Get("/service", handlers.System.GetServiceInfo)
-	app.Get("/namespace", handlers.System.GetNamespaces)
 	app.Post("/log", handlers.System.AddLog)
+	app.Get("/status", handlers.System.GetStatus)
+	app.Get("/status/cron", handlers.System.GetStatus) // TODO: Implement GetCronJobStatus
+	app.Get("/service", handlers.System.GetServiceInfo)
+	app.Post("/webhook", handlers.Webhook.HandleGenericWebhook)
+	app.Post("/sms/custom", handlers.Link.CreateLink) // TODO: Implement SendCustomMessage
+	app.Get("/namespace", handlers.System.GetNamespaces)
 
-	// Auth routes
+	// ============================================
+	// Auth routes (from auth.routes.js)
+	// Node.js only has: POST /auth/verifyuser
+	// ============================================
 	auth := app.Group("/auth")
-	auth.Get("/create", handlers.Auth.CreateToken)
-	auth.Get("/verify", handlers.Auth.VerifyToken)
 	auth.Post("/verifyuser", handlers.Auth.VerifyUser)
 
-	// Room routes
+	// ============================================
+	// Room routes (from room.routes.js)
+	// ============================================
 	room := app.Group("/room")
 	room.Get("/detail", handlers.Room.GetRoomDetail)
 	room.Get("/listrooms", handlers.Room.ListRooms)
 	room.Get("/checkexpired", handlers.Room.CheckExpired)
 	room.Get("/verifytoken", handlers.Room.VerifyToken)
 	room.Get("/picture", handlers.Room.GetRoomPicture)
-	room.Post("/create", handlers.Room.CreateRoom)
 	room.Post("/updateuser", handlers.Room.UpdateUser)
 	room.Post("/deleteroom", handlers.Room.DeleteRoom)
 	room.Put("/updatetype", handlers.Room.UpdateType)
 	room.Put("/updatestatus", handlers.Room.UpdateStatus)
 	room.Put("/close", handlers.Room.CloseRoom)
-	room.Put("/recordstatus", handlers.Room.UpdateRecordStatus)
+	room.Post("/verifyuser", handlers.Room.UpdateUser) // TODO: Implement VerifyUser handler
 
-	// User routes
+	// ============================================
+	// User routes (from user.routes.js)
+	// ============================================
 	user := app.Group("/user")
 	user.Get("/getuseralreadyinroom", handlers.User.GetUserAlreadyInRoom)
 	user.Get("/getuserdetail", handlers.User.GetUserDetail)
 	user.Get("/listparticipants", handlers.User.ListParticipants)
-	user.Get("/log", handlers.User.GetUserLog)
 	user.Post("/generate", handlers.User.GenerateUser)
 	user.Post("/joingenerate", handlers.User.JoinGenerate)
 	user.Post("/generateChatUser", handlers.User.GenerateChatUser)
 	user.Post("/updateparticipants", handlers.User.UpdateParticipants)
 	user.Post("/mutepublishedtrack", handlers.User.MutePublishedTrack)
 	user.Post("/removeParticipant", handlers.User.RemoveParticipant)
+	user.Get("/log", handlers.User.GetUserLog)
 	user.Put("/handle/track", handlers.User.HandleTrack)
 
-	// Link routes
+	// ============================================
+	// Link routes (from link.routes.js)
+	// ============================================
 	link := app.Group("/link")
 	link.Get("/getdetail", handlers.Link.GetLinkDetail)
 	link.Get("/history", handlers.Link.GetLinkHistory)
-	link.Get("/share", handlers.Link.GetShareURL)
-	link.Get("/get/domain", handlers.Link.GetDomain)
-	link.Get("/list", handlers.Link.GetLinkList)
 	link.Post("/create", handlers.Link.CreateLink)
 	link.Post("/create/hls", handlers.Link.CreateHLSLink)
 	link.Post("/update/latlng", handlers.Link.UpdateLatLng)
 	link.Post("/multilatlng/send", handlers.Link.MultiLatLng)
+	link.Get("/share", handlers.Link.GetShareURL)
 	link.Post("/cartracking", handlers.Link.CarTracking)
+	link.Get("/get/domain", handlers.Link.GetDomain)
+	link.Get("/list", handlers.Link.GetLinkList)
 
-	// Chat routes
+	// ============================================
+	// Chat routes (from chat.routes.js)
+	// Node.js only has: GET /chat/history, GET /chat/notification
+	// ============================================
 	chat := app.Group("/chat")
 	chat.Get("/history", handlers.Chat.GetHistory)
 	chat.Get("/notification", handlers.Chat.GetNotification)
-	chat.Get("/count", handlers.Chat.GetMessageCount)
-	chat.Post("/message", handlers.Chat.AddMessage)
-	chat.Delete("/messages", handlers.Chat.DeleteMessages)
 
-	// Notification routes
+	// ============================================
+	// Notification routes (from notification.routes.js)
+	// ============================================
 	notification := app.Group("/notification")
-	notification.Get("/list", handlers.Notification.ListNotifications)
-	notification.Get("/user", handlers.Notification.GetByUserName)
+	notification.Get("/events", handlers.Notification.ListNotifications)
+	notification.Put("/update/:notificationId", handlers.Notification.MarkAsRead)
 	notification.Get("/unread", handlers.Notification.GetUnread)
-	notification.Get("/unreadcount", handlers.Notification.GetUnreadCount)
-	notification.Get("/:id", handlers.Notification.GetByID)
-	notification.Post("/create", handlers.Notification.Create)
-	notification.Put("/read/:id", handlers.Notification.MarkAsRead)
-	notification.Put("/readall", handlers.Notification.MarkAllAsRead)
-	notification.Delete("/:id", handlers.Notification.Delete)
+	notification.Get("/:notificationId", handlers.Notification.GetByID)
+	notification.Post("/", handlers.Notification.Create)
 
-	// Record routes
+	// ============================================
+	// Record routes (from record.routes.js)
+	// ============================================
 	record := app.Group("/record")
-	record.Get("/listegress", handlers.Record.ListEgress)
-	record.Get("/available", handlers.Record.CheckEgressAvailable)
-	record.Get("/queue", handlers.Record.GetRecordQueue)
-	record.Get("/activecount", handlers.Record.GetActiveRecordCount)
-	record.Get("/filehistory", handlers.Record.GetFileHistory)
-	record.Get("/room", handlers.Record.GetRecordByRoom)
-	record.Get("/detail/:id", handlers.Record.GetRecordDetail)
-	record.Post("/start", handlers.Record.StartRecord)
-	record.Post("/stop", handlers.Record.StopRecord)
-	record.Post("/stopall", handlers.Record.StopAllActive)
+	record.Get("/request", handlers.Record.StartRecord)
+	record.Get("/list", handlers.Record.ListEgress)
+	record.Get("/stopall", handlers.Record.StopAllActive)
+	record.Get("/file", handlers.Record.GetFileHistory)
+	record.Get("/check", handlers.Record.CheckEgressAvailable)
 
-	// Car tracking routes
+	// ============================================
+	// Car tracking routes (from car.routes.js)
+	// ============================================
 	car := app.Group("/car")
-	car.Get("/list", handlers.Car.ListTasks)
-	car.Get("/task/:id", handlers.Car.GetTaskDetail)
-	car.Get("/uid/:uid", handlers.Car.GetTaskByUID)
-	car.Get("/room/:room", handlers.Car.GetTaskByRoom)
-	car.Get("/position/:room", handlers.Car.GetCarPosition)
-	car.Get("/latlng/:room", handlers.Car.GetUserLatLng)
+	car.Get("/task", handlers.Car.GetTaskDetail)
+	car.Put("/task", handlers.Car.UpdateTask)
 	car.Post("/task", handlers.Car.CreateTask)
-	car.Post("/position", handlers.Car.UpdatePosition)
-	car.Put("/task/:id", handlers.Car.UpdateTask)
-	car.Delete("/task/:id", handlers.Car.DeleteTask)
+	car.Get("/list", handlers.Car.ListTasks)
 
-	// Case routes
+	// ============================================
+	// Case routes (from case.routes.js)
+	// ============================================
 	caseRoutes := app.Group("/case")
-	caseRoutes.Get("/history", handlers.Case.GetCaseHistory)
-	caseRoutes.Get("/historycount", handlers.Case.GetCaseHistoryCount)
-	caseRoutes.Get("/roomname", handlers.Case.GetRoomName)
-	caseRoutes.Get("/service/:service", handlers.Case.GetCasesByService)
-	caseRoutes.Get("/caseid/:caseId", handlers.Case.GetCaseByCaseID)
-	caseRoutes.Get("/room/:roomId", handlers.Case.GetCaseByRoomID)
-	caseRoutes.Get("/:id", handlers.Case.GetCaseByID)
 	caseRoutes.Post("/create", handlers.Case.CreateCase)
-	caseRoutes.Put("/status/:caseId", handlers.Case.UpdateCaseStatus)
-	caseRoutes.Put("/:id", handlers.Case.UpdateCase)
-	caseRoutes.Delete("/:id", handlers.Case.DeleteCase)
+	caseRoutes.Get("/get", handlers.Case.GetCaseByID)
+	caseRoutes.Get("/history", handlers.Case.GetCaseHistory)
+	caseRoutes.Put("/update", handlers.Case.UpdateCase)
 
-	// Radio routes
+	// ============================================
+	// Radio routes (from radio.routes.js)
+	// ============================================
 	radio := app.Group("/radio")
-	radio.Get("/devices", handlers.Radio.ListDevices)
+	radio.Get("/device", handlers.Radio.ListDevices)
 	radio.Get("/device/:id", handlers.Radio.GetDeviceByID)
-	radio.Get("/device/deviceid/:deviceId", handlers.Radio.GetDeviceByDeviceID)
-	radio.Get("/locations", handlers.Radio.ListLocations)
+	radio.Get("/location", handlers.Radio.ListLocations)
 	radio.Get("/location/:radioNo", handlers.Radio.GetLocationByRadioNo)
-	radio.Post("/device", handlers.Radio.CreateDevice)
-	radio.Post("/location", handlers.Radio.CreateLocation)
-	radio.Put("/device/:id", handlers.Radio.UpdateDevice)
-	radio.Put("/device/location", handlers.Radio.UpdateDeviceLocation)
-	radio.Delete("/device/:id", handlers.Radio.DeleteDevice)
 
-	// Stats routes
+	// ============================================
+	// Stats routes (from stats.routes.js)
+	// ============================================
 	stats := app.Group("/stats")
 	stats.Get("/summary", handlers.Stats.GetSummary)
 	stats.Get("/device", handlers.Stats.GetDeviceStats)
 	stats.Get("/type", handlers.Stats.GetTypeStats)
+	stats.Get("/gen", handlers.Stats.GetDailyStats)
+	stats.Get("/generate", handlers.Stats.GetDailyStats)
 	stats.Get("/user", handlers.Stats.GetUserStats)
 	stats.Get("/case", handlers.Stats.GetCaseStats)
-	stats.Get("/daily", handlers.Stats.GetDailyStats)
-	stats.Get("/monthly", handlers.Stats.GetMonthlyStats)
-	stats.Get("/all", handlers.Stats.GetAll)
 
-	// Upload routes
+	// ============================================
+	// Upload routes (from upload.routes.js)
+	// ============================================
 	upload := app.Group("/upload")
 	upload.Post("/file", handlers.Upload.UploadFile)
-	upload.Post("/image", handlers.Upload.UploadImage)
 	upload.Post("/video", handlers.Upload.UploadVideo)
-	upload.Post("/multiple", handlers.Upload.UploadMultiple)
-	upload.Get("/exists", handlers.Upload.CheckFileExists)
-	upload.Delete("/file", handlers.Upload.DeleteFile)
-	// upload.Delete("/file", middleware.AuthMiddleware(authService), handlers.Upload.DeleteFile)
+	upload.Get("/list", handlers.Upload.CheckFileExists) // TODO: Implement VideoList handler
+	upload.Post("/sms/send", handlers.Upload.UploadFile) // TODO: Implement SendSMS handler
 
+	// ============================================
+	// Service routes (from service.routes.js)
+	// ============================================
+	serviceRoutes := app.Group("/service")
+	serviceRoutes.Get("/get", handlers.System.GetServiceInfo)    // TODO: Implement GetServiceByRoom handler
+	serviceRoutes.Put("/update", handlers.System.GetServiceInfo) // TODO: Implement UpdateService handler
+
+	// ============================================
 	// Webhook routes
+	// ============================================
 	webhook := app.Group("/webhook")
 	webhook.Post("/livekit", handlers.Webhook.HandleLiveKitWebhook)
-	webhook.Post("/generic", handlers.Webhook.HandleGenericWebhook)
 
-	// Test routes
+	// ============================================
+	// Test routes (from index.routes.js)
+	// ============================================
 	test := app.Group("/test")
-	test.Get("/ping", handlers.Test.Ping)
-	test.Post("/echo", handlers.Test.Echo)
-	test.Get("/database", handlers.Test.TestDatabase)
-	test.Get("/redis", handlers.Test.TestRedis)
-	test.Get("/livekit", handlers.Test.TestLiveKit)
-	test.Get("/all", handlers.Test.TestAll)
-	test.Get("/config", handlers.Test.GetConfig)
+	test.Get("/", handlers.Test.Ping)
+	test.Get("/get/namespace", handlers.Test.GetConfig) // TODO: Implement GetAllNamespaces handler
+	test.Get("/redis/connection", handlers.Test.TestRedis)
+	test.Get("/redis/operations", handlers.Test.TestRedis)
+	test.Delete("/redis/clear", handlers.Test.TestRedis)
+	test.Get("/mp4/queue", handlers.Test.TestAll)
+	test.Delete("/mp4/queue/:recordId", handlers.Test.TestAll)
+	test.Delete("/mp4/queue", handlers.Test.TestAll)
 
 	// Static file serving
 	app.Static("/logo", "./logo")
