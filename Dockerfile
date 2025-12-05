@@ -52,15 +52,15 @@ RUN mkdir -p /app/logs && \
 USER appuser
 
 # Expose port
-EXPOSE 8090
+EXPOSE 5500
 
 # Set environment variables for production
 ENV ENVIRONMENT=production
-ENV PORT=8090
+ENV PORT=5500
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8090/health || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5500/health || exit 1
 
 # Run the application
 CMD ["./zteco-api-go"]
