@@ -148,3 +148,95 @@ func (h *SystemHandler) AddLog(c *fiber.Ctx) error {
 		"logged": true,
 	})
 }
+
+// GetCronJobStatus gets cron job status
+// GET /status/cron
+func (h *SystemHandler) GetCronJobStatus(c *fiber.Ctx) error {
+	overallStatus := h.crontab.GetStatus()
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"overall": overallStatus,
+		"livekitHealthCheck": fiber.Map{
+			"enabled":   h.livekit != nil,
+			"lastCheck": overallStatus.LastCheck,
+		},
+	})
+}
+
+// GetServiceByRoom gets service by room
+// GET /service/get
+func (h *SystemHandler) GetServiceByRoom(c *fiber.Ctx) error {
+	room := c.Query("room")
+	if room == "" {
+		return utils.BadRequestResponse(c, "Room parameter is required")
+	}
+
+	// Query database to get service by room
+	var serviceID int
+	err := h.db.DB.QueryRowContext(c.Context(),
+		"SELECT service FROM sms_room WHERE roomName = ?", room).Scan(&serviceID)
+	if err != nil {
+		// Fallback to service 999
+		serviceID = 999
+	}
+
+	// Get service detail
+	var svc struct {
+		ID        int    `db:"id"`
+		Name      string `db:"name"`
+		Logo      string `db:"logo"`
+		Latitude  string `db:"latitude"`
+		Longitude string `db:"longitude"`
+	}
+
+	err = h.db.DB.QueryRowContext(c.Context(),
+		"SELECT id, name, logo, COALESCE(latitude, '') as latitude, COALESCE(longitude, '') as longitude FROM sms_service WHERE id = ?",
+		serviceID).Scan(&svc.ID, &svc.Name, &svc.Logo, &svc.Latitude, &svc.Longitude)
+	if err != nil {
+		return utils.NotFoundResponse(c, "Service not found")
+	}
+
+	logoURL := ""
+	if svc.Logo != "" {
+		logoURL = h.cfg.APIURL + "/logo/" + svc.Logo
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"id":        svc.ID,
+		"name":      svc.Name,
+		"logo":      logoURL,
+		"latitude":  svc.Latitude,
+		"longitude": svc.Longitude,
+	})
+}
+
+// UpdateService updates service
+// PUT /service/update
+func (h *SystemHandler) UpdateService(c *fiber.Ctx) error {
+	type UpdateRequest struct {
+		Service   int     `json:"service"`
+		Name      string  `json:"name"`
+		Latitude  float64 `json:"latitude"`
+		Longitude float64 `json:"longitude"`
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.BadRequestResponse(c, "Invalid request body")
+	}
+
+	if req.Service == 0 || req.Latitude == 0 || req.Longitude == 0 {
+		return utils.BadRequestResponse(c, "Service and location parameters are required")
+	}
+
+	_, err := h.db.DB.ExecContext(c.Context(),
+		"UPDATE sms_service SET name = ?, latitude = ?, longitude = ? WHERE id = ?",
+		req.Name, req.Latitude, req.Longitude, req.Service)
+	if err != nil {
+		return utils.ErrorResponse(c, "Failed to update service location")
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "Service updated successfully",
+	})
+}

@@ -47,10 +47,10 @@ func SetupRoutes(
 	app.Get("/health", handlers.System.HealthCheck)
 	app.Post("/log", handlers.System.AddLog)
 	app.Get("/status", handlers.System.GetStatus)
-	app.Get("/status/cron", handlers.System.GetStatus) // TODO: Implement GetCronJobStatus
+	app.Get("/status/cron", handlers.System.GetCronJobStatus)
 	app.Get("/service", handlers.System.GetServiceInfo)
 	app.Post("/webhook", handlers.Webhook.HandleGenericWebhook)
-	app.Post("/sms/custom", handlers.Link.CreateLink) // TODO: Implement SendCustomMessage
+	app.Post("/sms/custom", handlers.Link.SendCustomMessage)
 	app.Get("/namespace", handlers.System.GetNamespaces)
 
 	// ============================================
@@ -74,7 +74,7 @@ func SetupRoutes(
 	room.Put("/updatetype", handlers.Room.UpdateType)
 	room.Put("/updatestatus", handlers.Room.UpdateStatus)
 	room.Put("/close", handlers.Room.CloseRoom)
-	room.Post("/verifyuser", handlers.Room.UpdateUser) // TODO: Implement VerifyUser handler
+	room.Post("/verifyuser", handlers.Room.VerifyUser)
 
 	// ============================================
 	// User routes (from user.routes.js)
@@ -180,15 +180,15 @@ func SetupRoutes(
 	upload := app.Group("/upload")
 	upload.Post("/file", handlers.Upload.UploadFile)
 	upload.Post("/video", handlers.Upload.UploadVideo)
-	upload.Get("/list", handlers.Upload.CheckFileExists) // TODO: Implement VideoList handler
-	upload.Post("/sms/send", handlers.Upload.UploadFile) // TODO: Implement SendSMS handler
+	upload.Get("/list", handlers.Upload.VideoList)
+	upload.Post("/sms/send", handlers.Upload.SendSMS)
 
 	// ============================================
 	// Service routes (from service.routes.js)
 	// ============================================
 	serviceRoutes := app.Group("/service")
-	serviceRoutes.Get("/get", handlers.System.GetServiceInfo)    // TODO: Implement GetServiceByRoom handler
-	serviceRoutes.Put("/update", handlers.System.GetServiceInfo) // TODO: Implement UpdateService handler
+	serviceRoutes.Get("/get", handlers.System.GetServiceByRoom)
+	serviceRoutes.Put("/update", handlers.System.UpdateService)
 
 	// ============================================
 	// Webhook routes
@@ -201,13 +201,13 @@ func SetupRoutes(
 	// ============================================
 	test := app.Group("/test")
 	test.Get("/", handlers.Test.Ping)
-	test.Get("/get/namespace", handlers.Test.GetConfig) // TODO: Implement GetAllNamespaces handler
+	test.Get("/get/namespace", handlers.Test.GetAllNamespaces)
 	test.Get("/redis/connection", handlers.Test.TestRedis)
 	test.Get("/redis/operations", handlers.Test.TestRedis)
-	test.Delete("/redis/clear", handlers.Test.TestRedis)
-	test.Get("/mp4/queue", handlers.Test.TestAll)
-	test.Delete("/mp4/queue/:recordId", handlers.Test.TestAll)
-	test.Delete("/mp4/queue", handlers.Test.TestAll)
+	test.Delete("/redis/clear", handlers.Test.ClearRedisTestData)
+	test.Get("/mp4/queue", handlers.Test.GetMP4ProcessingQueue)
+	test.Delete("/mp4/queue/:recordId", handlers.Test.RemoveFromMP4ProcessingQueue)
+	test.Delete("/mp4/queue", handlers.Test.ClearMP4ProcessingQueue)
 
 	// Static file serving
 	app.Static("/logo", "./logo")

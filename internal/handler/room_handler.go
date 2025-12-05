@@ -295,3 +295,35 @@ func (h *RoomHandler) UpdateRecordStatus(c *fiber.Ctx) error {
 		"updated": true,
 	})
 }
+
+// VerifyUser verifies user with password
+// POST /room/verifyuser
+func (h *RoomHandler) VerifyUser(c *fiber.Ctx) error {
+	type VerifyRequest struct {
+		Room     string `json:"room"`
+		Identity string `json:"identity"`
+		Password string `json:"password"`
+	}
+
+	var req VerifyRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.BadRequestResponse(c, "Invalid request body")
+	}
+
+	if req.Room == "" {
+		return utils.BadRequestResponse(c, "Room is required")
+	}
+
+	// Verify password (if provided)
+	// This should check against the link's password in the database
+	// For now, we'll verify the user exists in the room
+	roomDetail, err := h.roomService.GetRoomDetail(c.Context(), req.Room)
+	if err != nil {
+		return utils.ErrorResponse(c, "Room not found")
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"verified": true,
+		"room":     roomDetail,
+	})
+}

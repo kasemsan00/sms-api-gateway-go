@@ -193,3 +193,98 @@ func (h *TestHandler) GetConfig(c *fiber.Ctx) error {
 		},
 	})
 }
+
+// GetAllNamespaces returns all socket namespaces
+// GET /test/get/namespace
+func (h *TestHandler) GetAllNamespaces(c *fiber.Ctx) error {
+	// Placeholder - actual implementation would get from socket.io manager
+	namespaces := []string{
+		"/",
+		"/mobile",
+		"/notification",
+		"/queue",
+		"/newqueue",
+	}
+
+	return utils.SuccessResponse(c, namespaces)
+}
+
+// ClearRedisTestData clears Redis test data
+// DELETE /test/redis/clear
+func (h *TestHandler) ClearRedisTestData(c *fiber.Ctx) error {
+	if h.redisMgr == nil {
+		return utils.ErrorResponse(c, "Redis not configured")
+	}
+
+	// Clean up test data
+	testKeys := []string{"test:key", "test:user:1", "test:messages"}
+	for _, key := range testKeys {
+		h.redisMgr.Delete(c.Context(), key)
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "Test data cleared from Redis",
+	})
+}
+
+// GetMP4ProcessingQueue gets MP4 encoding queue status
+// GET /test/mp4/queue
+func (h *TestHandler) GetMP4ProcessingQueue(c *fiber.Ctx) error {
+	if h.redisMgr == nil {
+		return utils.ErrorResponse(c, "Redis not configured")
+	}
+
+	// Get queue items
+	queueItems, err := h.redisMgr.Client().LRange(c.Context(), "mp4_encode_queue", 0, -1).Result()
+	if err != nil {
+		return utils.ErrorResponse(c, "Failed to get MP4 encoding queue status")
+	}
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"queueSize":  len(queueItems),
+		"queueItems": queueItems,
+		"message":    "Queue items waiting for processing",
+	})
+}
+
+// RemoveFromMP4ProcessingQueue removes a record from MP4 processing queue
+// DELETE /test/mp4/queue/:recordId
+func (h *TestHandler) RemoveFromMP4ProcessingQueue(c *fiber.Ctx) error {
+	if h.redisMgr == nil {
+		return utils.ErrorResponse(c, "Redis not configured")
+	}
+
+	recordID := c.Params("recordId")
+	if recordID == "" {
+		return utils.BadRequestResponse(c, "Record ID is required")
+	}
+
+	// Remove from processing set
+	processingKey := "mp4_processing_set:" + recordID
+	h.redisMgr.Delete(c.Context(), processingKey)
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "Record " + recordID + " removed from processing set",
+		"note":    "Cannot remove from FIFO queue directly - queue will be processed by workers",
+	})
+}
+
+// ClearMP4ProcessingQueue clears the MP4 encoding queue
+// DELETE /test/mp4/queue
+func (h *TestHandler) ClearMP4ProcessingQueue(c *fiber.Ctx) error {
+	if h.redisMgr == nil {
+		return utils.ErrorResponse(c, "Redis not configured")
+	}
+
+	// Get current queue items for display
+	queueItems, _ := h.redisMgr.Client().LRange(c.Context(), "mp4_encode_queue", 0, -1).Result()
+	queueSize := len(queueItems)
+
+	// Clear the entire FIFO queue
+	h.redisMgr.Delete(c.Context(), "mp4_encode_queue")
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"message":      "Cleared " + string(rune(queueSize)) + " records from MP4 encoding queue",
+		"clearedItems": queueItems,
+	})
+}

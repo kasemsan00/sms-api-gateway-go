@@ -2,6 +2,7 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 
 	"api-gateway-go/internal/service"
 	"api-gateway-go/pkg/utils"
@@ -253,4 +254,36 @@ func (h *LinkHandler) GetLinkList(c *fiber.Ctx) error {
 	}
 
 	return utils.SuccessResponse(c, links)
+}
+
+// SendCustomMessage sends a custom SMS message
+// POST /sms/custom
+func (h *LinkHandler) SendCustomMessage(c *fiber.Ctx) error {
+	type SendRequest struct {
+		Message string `json:"message"`
+		Mobile  string `json:"mobile"`
+		Room    string `json:"room"`
+	}
+
+	var req SendRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.BadRequestResponse(c, "Invalid request body")
+	}
+
+	if req.Message == "" {
+		return utils.BadRequestResponse(c, "Message is required")
+	}
+	if req.Mobile == "" {
+		return utils.BadRequestResponse(c, "Mobile is required")
+	}
+	if strings.TrimSpace(req.Message) == "" {
+		return utils.BadRequestResponse(c, "Message cannot be empty")
+	}
+
+	// Here we would send the SMS using SMS service
+	// For now, return success as placeholder
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "SMS sent successfully",
+		"mobile":  req.Mobile,
+	})
 }

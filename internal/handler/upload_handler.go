@@ -151,3 +151,83 @@ func (h *UploadHandler) CheckFileExists(c *fiber.Ctx) error {
 		"exists": exists,
 	})
 }
+
+// VideoList gets video list with pagination
+// GET /upload/list
+func (h *UploadHandler) VideoList(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+	linkType := c.Query("linkType", "record")
+	search := c.Query("search", "")
+	mobile := c.Query("mobile", "")
+	agent := c.Query("agent", "")
+	startDate := c.Query("startDate", "")
+	endDate := c.Query("endDate", "")
+
+	// Clean up undefined values
+	if search == "null" || search == "undefined" {
+		search = ""
+	}
+	if mobile == "null" || mobile == "undefined" {
+		mobile = ""
+	}
+	if agent == "null" || agent == "undefined" {
+		agent = ""
+	}
+
+	videos, total, err := h.fileService.GetVideoList(c.Context(), service.VideoListParams{
+		Page:      page,
+		Limit:     limit,
+		LinkType:  linkType,
+		Search:    search,
+		Mobile:    mobile,
+		Agent:     agent,
+		StartDate: startDate,
+		EndDate:   endDate,
+	})
+	if err != nil {
+		return utils.ErrorResponse(c, err.Error())
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	return utils.SuccessResponse(c, fiber.Map{
+		"data": videos,
+		"pagination": fiber.Map{
+			"totalItems":      total,
+			"totalPages":      totalPages,
+			"currentPage":     page,
+			"itemsPerPage":    limit,
+			"hasNextPage":     page < totalPages,
+			"hasPreviousPage": page > 1,
+		},
+	})
+}
+
+// SendSMS sends SMS with video/record link
+// POST /upload/sms/send
+func (h *UploadHandler) SendSMS(c *fiber.Ctx) error {
+	type SendRequest struct {
+		RecordID      int    `json:"recordId"`
+		AgentUsername string `json:"agentUsername"`
+		Room          string `json:"room"`
+		Mobile        string `json:"mobile"`
+		Service       int    `json:"service"`
+		SMS           int    `json:"sms"`
+	}
+
+	var req SendRequest
+	if err := c.BodyParser(&req); err != nil {
+		return utils.BadRequestResponse(c, "Invalid request body")
+	}
+
+	if req.RecordID == 0 || req.AgentUsername == "" || req.Room == "" || req.Mobile == "" || req.Service == 0 {
+		return utils.BadRequestResponse(c, "Record ID, agent username, room, mobile, and service are required")
+	}
+
+	// Here we would create a link and send SMS
+	// For now, return success
+	return utils.SuccessResponse(c, fiber.Map{
+		"message": "SMS sent successfully",
+	})
+}

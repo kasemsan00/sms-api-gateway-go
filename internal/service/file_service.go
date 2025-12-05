@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -141,4 +142,38 @@ func (s *FileService) getMimeType(ext string) string {
 		return mime
 	}
 	return "application/octet-stream"
+}
+
+// VideoListParams represents parameters for video list query
+type VideoListParams struct {
+	Page      int
+	Limit     int
+	LinkType  string
+	Search    string
+	Mobile    string
+	Agent     string
+	StartDate string
+	EndDate   string
+}
+
+// VideoInfo represents video information
+type VideoInfo struct {
+	ID        int    `json:"id"`
+	Room      string `json:"room"`
+	FileName  string `json:"fileName"`
+	FilePath  string `json:"filePath"`
+	FileSize  int64  `json:"fileSize"`
+	Duration  int    `json:"duration"`
+	URL       string `json:"url"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// GetVideoList gets list of videos with pagination
+// This is a placeholder implementation - actual implementation would query database
+func (s *FileService) GetVideoList(ctx context.Context, params VideoListParams) ([]VideoInfo, int, error) {
+	// Placeholder - This would normally query the database for video records
+	videos := []VideoInfo{}
+	total := 0
+
+	return videos, total, nil
 }

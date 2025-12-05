@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
 	"api-gateway-go/internal/service"
@@ -70,6 +71,12 @@ func (h *CaseHandler) CreateCase(c *fiber.Ctx) error {
 // GET /case/:id
 func (h *CaseHandler) GetCaseByID(c *fiber.Ctx) error {
 	idStr := c.Params("id")
+	if idStr == "" {
+		idStr = c.Query("id")
+	}
+
+	fmt.Println("Get Case Id", idStr)
+
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		return utils.BadRequestResponse(c, "Invalid case ID")
