@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/livekit/protocol/auth"
 	"github.com/livekit/protocol/livekit"
 	lksdk "github.com/livekit/server-sdk-go/v2"
 	"github.com/rs/zerolog/log"
@@ -209,8 +210,8 @@ func (lm *LiveKitManager) MutePublishedTrack(ctx context.Context, room, identity
 }
 
 // GenerateToken generates an access token for a participant
-func (lm *LiveKitManager) GenerateToken(identity, name, room string, grants *lksdk.VideoGrant, metadata string, ttl time.Duration) (string, error) {
-	at := lksdk.NewAccessToken(lm.cfg.LiveKitAPIKey, lm.cfg.LiveKitAPISecret)
+func (lm *LiveKitManager) GenerateToken(identity, name, room string, grants *auth.VideoGrant, metadata string, ttl time.Duration) (string, error) {
+	at := auth.NewAccessToken(lm.cfg.LiveKitAPIKey, lm.cfg.LiveKitAPISecret)
 
 	at.SetIdentity(identity).
 		SetName(name).
