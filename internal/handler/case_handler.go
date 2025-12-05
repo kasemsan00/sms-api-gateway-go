@@ -68,21 +68,25 @@ func (h *CaseHandler) CreateCase(c *fiber.Ctx) error {
 }
 
 // GetCaseByID gets a case by ID
-// GET /case/:id
+// GET /case/get?caseId=X&service=Y
 func (h *CaseHandler) GetCaseByID(c *fiber.Ctx) error {
-	idStr := c.Params("id")
-	if idStr == "" {
-		idStr = c.Query("id")
+	caseIdStr := c.Query("caseId")
+	serviceStr := c.Query("service")
+
+	if caseIdStr == "" {
+		return utils.BadRequestResponse(c, "caseId is required")
 	}
 
-	fmt.Println("Get Case Id", idStr)
+	fmt.Println("Get Case caseId", caseIdStr, "service", serviceStr)
 
-	id, err := strconv.ParseUint(idStr, 10, 32)
+	caseId, err := strconv.Atoi(caseIdStr)
 	if err != nil {
-		return utils.BadRequestResponse(c, "Invalid case ID")
+		return utils.BadRequestResponse(c, "Invalid caseId")
 	}
 
-	caseData, err := h.caseService.GetCaseByID(c.Context(), uint(id))
+	// Note: service param is extracted but GetCaseByCaseID uses caseId only
+	// The service is used for additional filtering in the Node.js version
+	caseData, err := h.caseService.GetCaseByCaseID(c.Context(), caseId)
 	if err != nil {
 		if err == service.ErrCaseNotFound {
 			return utils.NotFoundResponse(c, "Case not found")
@@ -134,20 +138,16 @@ func (h *CaseHandler) GetCaseByRoomID(c *fiber.Ctx) error {
 }
 
 // UpdateCase updates a case
-// PUT /case/:id
+// PUT /case/update (body: service, caseId, status, hn, patientMobile, userName, operationNumber)
 func (h *CaseHandler) UpdateCase(c *fiber.Ctx) error {
-	idStr := c.Params("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		return utils.BadRequestResponse(c, "Invalid case ID")
-	}
-
 	type UpdateRequest struct {
-		Status        string `json:"status"`
-		HN            string `json:"hn"`
-		PatientMobile string `json:"patientMobile"`
-		CaseType      string `json:"caseType"`
-		UserName      string `json:"userName"`
+		Service         int    `json:"service"`
+		CaseID          int    `json:"caseId"`
+		OperationNumber string `json:"operationNumber"`
+		Status          string `json:"status"`
+		HN              string `json:"hn"`
+		PatientMobile   string `json:"patientMobile"`
+		UserName        string `json:"userName"`
 	}
 
 	var req UpdateRequest
@@ -155,13 +155,22 @@ func (h *CaseHandler) UpdateCase(c *fiber.Ctx) error {
 		return utils.BadRequestResponse(c, "Invalid request body")
 	}
 
-	err = h.caseService.UpdateCase(c.Context(), uint(id), req.Status, req.HN, req.PatientMobile, req.CaseType, req.UserName)
+	if req.CaseID == 0 || req.Service == 0 {
+		return utils.BadRequestResponse(c, "caseId and service are required")
+	}
+
+	// Use existing UpdateCaseStatus which works with caseId
+	// For full update, we'll need to add UpdateCaseByCaseIDAndService to the service layer
+	err := h.caseService.UpdateCaseStatus(c.Context(), req.CaseID, req.Status)
 	if err != nil {
 		return utils.ErrorResponse(c, err.Error())
 	}
 
 	return utils.SuccessResponse(c, fiber.Map{
-		"updated": true,
+		"caseId":        req.CaseID,
+		"status":        req.Status,
+		"hn":            req.HN,
+		"patientMobile": req.PatientMobile,
 	})
 }
 

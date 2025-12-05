@@ -81,7 +81,7 @@ func (h *NotificationHandler) GetUnreadCount(c *fiber.Ctx) error {
 // GetByID gets a notification by ID
 // GET /notification/:id
 func (h *NotificationHandler) GetByID(c *fiber.Ctx) error {
-	idStr := c.Params("id")
+	idStr := c.Params("notificationId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return utils.BadRequestResponse(c, "Invalid notification ID")
@@ -136,7 +136,7 @@ func (h *NotificationHandler) Create(c *fiber.Ctx) error {
 // MarkAsRead marks a notification as read
 // PUT /notification/read/:id
 func (h *NotificationHandler) MarkAsRead(c *fiber.Ctx) error {
-	idStr := c.Params("id")
+	idStr := c.Params("notificationId")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return utils.BadRequestResponse(c, "Invalid notification ID")
