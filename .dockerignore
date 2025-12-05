@@ -1,0 +1,65 @@
+# -----------------------------------------------------------------------------
+# Docker Build Context Exclusions
+# -----------------------------------------------------------------------------
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CLAUDE.md
+IMPLEMENTATION_SUMMARY.md
+*.md
+
+# Environment files
+.env
+.env.example
+.env.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.code-workspace
+.history/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# Test files
+*.test
+coverage.out
+test-results/
+
+# Go specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Database files (old PocketBase)
+pb_data/
+
+# Build artifacts
+build/
+dist/
+
+# Node modules (if any)
+node_modules/
+
+# Documentation files
+docs/
+examples/
+
+# GitHub workflows
+.github/

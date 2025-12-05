@@ -1,0 +1,174 @@
+# -----------------------------------------------------------------------------
+# Go
+# -----------------------------------------------------------------------------
+
+# Binary file
+adms-api
+adms-api.exe
+adms-api-new
+
+# Go build files
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Generic binary files
+*.bin
+*.com
+*.class
+*.o
+*.so
+*.a
+*.lib
+*.out
+*.app
+*.pkg
+
+# Compiled binary outputs
+bin/
+dist/
+*.go-binary
+
+# Go test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# -----------------------------------------------------------------------------
+# Environment Variables
+# -----------------------------------------------------------------------------
+
+# .env file (sensitive configuration)
+.env
+
+# -----------------------------------------------------------------------------
+# Database
+# -----------------------------------------------------------------------------
+
+# SQLite databases (from old PocketBase implementation)
+pb_data/
+pb_data/*
+
+# -----------------------------------------------------------------------------
+# IDE and Editor Files
+# -----------------------------------------------------------------------------
+
+# VS Code
+.vscode/
+.history/
+*.code-workspace
+
+# GoLand/IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# -----------------------------------------------------------------------------
+# Operating System Files
+# -----------------------------------------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+
+# -----------------------------------------------------------------------------
+# Logs
+# -----------------------------------------------------------------------------
+
+# Log files
+*.log
+logs/
+
+# -----------------------------------------------------------------------------
+# Build Artifacts
+# -----------------------------------------------------------------------------
+
+# Build directory
+build/
+
+# -----------------------------------------------------------------------------
+# Testing
+# -----------------------------------------------------------------------------
+
+# Go coverage output
+coverage.out
+
+# Test result files
+test-results/
+
+# -----------------------------------------------------------------------------
+# Temporary Files
+# -----------------------------------------------------------------------------
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# -----------------------------------------------------------------------------
+# Miscellaneous
+# -----------------------------------------------------------------------------
+
+# Air live reload configuration (if used)
+tmp/
+
+# Backup files
+*.bak
+*.backup
+
+# Package files
+*.deb
+*.rpm
+*.pkg
+*.dmg
