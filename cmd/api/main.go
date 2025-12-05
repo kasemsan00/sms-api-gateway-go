@@ -89,15 +89,7 @@ func main() {
 	defer crontabService.Stop()
 
 	// Suppress unused variable warnings - these will be used when more handlers are added
-	_ = chatService
-	_ = notificationService
-	_ = recordService
-	_ = carService
-	_ = caseService
-	_ = radioService
-	_ = statsService
 	_ = smsService
-	_ = fileService
 
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
@@ -125,15 +117,25 @@ func main() {
 
 	// Initialize handlers
 	handlers := &router.Handlers{
-		Auth:   handler.NewAuthHandler(authService),
-		Room:   handler.NewRoomHandler(roomService, authService),
-		User:   handler.NewUserHandler(userService),
-		Link:   handler.NewLinkHandler(linkService, userService),
-		System: handler.NewSystemHandler(db, redis, livekit, crontabService, cfg),
+		Auth:         handler.NewAuthHandler(authService),
+		Room:         handler.NewRoomHandler(roomService, authService),
+		User:         handler.NewUserHandler(userService),
+		Link:         handler.NewLinkHandler(linkService, userService),
+		System:       handler.NewSystemHandler(db, redis, livekit, crontabService, cfg),
+		Chat:         handler.NewChatHandler(chatService),
+		Notification: handler.NewNotificationHandler(notificationService),
+		Record:       handler.NewRecordHandler(recordService),
+		Car:          handler.NewCarHandler(carService),
+		Case:         handler.NewCaseHandler(caseService),
+		Radio:        handler.NewRadioHandler(radioService),
+		Stats:        handler.NewStatsHandler(statsService),
+		Upload:       handler.NewUploadHandler(fileService),
+		Webhook:      handler.NewWebhookHandler(roomService, userService, recordService, recordRepo, livekit, cfg),
+		Test:         handler.NewTestHandler(cfg, db, redis, livekit),
 	}
 
 	// Setup routes
-	router.SetupRoutes(app, handlers, authService)
+	router.SetupRoutes(app, handlers, authService, cfg, db, redis, livekit, recordRepo)
 
 	// Start server
 	go func() {
