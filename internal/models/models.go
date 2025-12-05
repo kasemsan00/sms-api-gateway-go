@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"database/sql"
@@ -7,25 +7,25 @@ import (
 
 // CarTrack represents the car_track table
 type CarTrack struct {
-	ID               int             `db:"id" json:"id"`
-	UID              sql.NullString  `db:"uid" json:"uid,omitempty"`
-	Status           sql.NullString  `db:"status" json:"status,omitempty"`
-	Mobile           sql.NullString  `db:"mobile" json:"mobile,omitempty"`
-	UserName         sql.NullString  `db:"userName" json:"userName,omitempty"`
-	Room             sql.NullString  `db:"room" json:"room,omitempty"`
-	Latitude         sql.NullFloat64 `db:"latitude" json:"latitude,omitempty"`
-	Longitude        sql.NullFloat64 `db:"longitude" json:"longitude,omitempty"`
-	Accuracy         sql.NullFloat64 `db:"accuracy" json:"accuracy,omitempty"`
-	Speed            sql.NullInt32   `db:"speed" json:"speed,omitempty"`
-	Heading          sql.NullInt32   `db:"heading" json:"heading,omitempty"`
-	Altitude         sql.NullFloat64 `db:"altitude" json:"altitude,omitempty"`
-	AltitudeAccuracy sql.NullFloat64 `db:"altitudeAccuracy" json:"altitudeAccuracy,omitempty"`
-	DtmUpdated       sql.NullTime    `db:"dtmUpdated" json:"dtmUpdated,omitempty"`
-	DtmCreated       sql.NullTime    `db:"dtmCreated" json:"dtmCreated,omitempty"`
-	DtmStarted       sql.NullTime    `db:"dtmStarted" json:"dtmStarted,omitempty"`
-	DtmArrived       sql.NullTime    `db:"dtmArrived" json:"dtmArrived,omitempty"`
-	DtmCanceled      sql.NullTime    `db:"dtmCanceled" json:"dtmCanceled,omitempty"`
-	DtmCompleted     sql.NullTime    `db:"dtmCompleted" json:"dtmCompleted,omitempty"`
+	ID               int              `db:"id" json:"id"`
+	UID              sql.NullString   `db:"uid" json:"uid,omitempty"`
+	Status           sql.NullString   `db:"status" json:"status,omitempty"`
+	Mobile           sql.NullString   `db:"mobile" json:"mobile,omitempty"`
+	UserName         sql.NullString   `db:"userName" json:"userName,omitempty"`
+	Room             sql.NullString   `db:"room" json:"room,omitempty"`
+	Latitude         sql.NullFloat64  `db:"latitude" json:"latitude,omitempty"`
+	Longitude        sql.NullFloat64  `db:"longitude" json:"longitude,omitempty"`
+	Accuracy         sql.NullFloat64  `db:"accuracy" json:"accuracy,omitempty"`
+	Speed            sql.NullInt32    `db:"speed" json:"speed,omitempty"`
+	Heading          sql.NullInt32    `db:"heading" json:"heading,omitempty"`
+	Altitude         sql.NullFloat64  `db:"altitude" json:"altitude,omitempty"`
+	AltitudeAccuracy sql.NullFloat64  `db:"altitudeAccuracy" json:"altitudeAccuracy,omitempty"`
+	DtmUpdated       sql.NullTime     `db:"dtmUpdated" json:"dtmUpdated,omitempty"`
+	DtmCreated       sql.NullTime     `db:"dtmCreated" json:"dtmCreated,omitempty"`
+	DtmStarted       sql.NullTime     `db:"dtmStarted" json:"dtmStarted,omitempty"`
+	DtmArrived       sql.NullTime     `db:"dtmArrived" json:"dtmArrived,omitempty"`
+	DtmCanceled      sql.NullTime     `db:"dtmCanceled" json:"dtmCanceled,omitempty"`
+	DtmCompleted     sql.NullTime     `db:"dtmCompleted" json:"dtmCompleted,omitempty"`
 }
 
 // CaseData represents the case_data table
@@ -294,4 +294,60 @@ type UsageStatusLog struct {
 	UserAgent  sql.NullString  `db:"userAgent" json:"userAgent,omitempty"`
 	Data       sql.NullString  `db:"data" json:"data,omitempty"`
 	DtmCreated sql.NullTime    `db:"dtmCreated" json:"dtmCreated,omitempty"`
+}
+
+// RoomDetailResponse is the response for room detail
+type RoomDetailResponse struct {
+	ID                    uint      `json:"id"`
+	Status                string    `json:"status"`
+	Room                  string    `json:"room"`
+	RoomType              string    `json:"roomType"`
+	RecordID              string    `json:"recordId"`
+	AutoRecord            int       `json:"autoRecord"`
+	RecordType            string    `json:"recordType"`
+	EncodingOptionsPreset string    `json:"encodingOptionsPreset"`
+	ChatEnabled           int       `json:"chatEnabled"`
+	MessageUnread         int       `json:"messageUnread"`
+	UserAgent             string    `json:"userAgent"`
+	DtmCreated            time.Time `json:"dtmCreated"`
+	DtmStartRecord        time.Time `json:"dtmStartRecord,omitempty"`
+	DtmStopRecord         time.Time `json:"dtmStopRecord,omitempty"`
+	WebSocketURL          string    `json:"webSocketURL"`
+	RecordDuration        int64     `json:"recordDuration,omitempty"`
+}
+
+// UserDetailResponse is the response for user detail
+type UserDetailResponse struct {
+	Room       string `json:"room"`
+	Identity   string `json:"identity"`
+	Color      string `json:"color"`
+	UserName   string `json:"userName"`
+	Status     string `json:"status"`
+	Camera     bool   `json:"camera"`
+	Microphone bool   `json:"microphone"`
+	UserType   string `json:"userType"`
+	Conference int    `json:"conference"`
+}
+
+// LinkDetailResponse is the response for link detail
+type LinkDetailResponse struct {
+	LinkID                string    `json:"linkID"`
+	Room                  string    `json:"room"`
+	Enabled               int       `json:"enabled"`
+	Mobile                string    `json:"mobile"`
+	IsAdmin               string    `json:"isAdmin"`
+	UserName              string    `json:"userName"`
+	UserType              string    `json:"userType"`
+	LinkType              string    `json:"linkType"`
+	RequireJoinPermission int       `json:"requireJoinPermission"`
+	CrmSender             string    `json:"crmSender"`
+	RequireUserName       int       `json:"requireUserName"`
+	RequirePassword       int       `json:"requirePassword"`
+	OneTimeLink           int       `json:"oneTimeLink"`
+	DtmCreated            time.Time `json:"dtmCreated"`
+	DtmExpired            time.Time `json:"dtmExpired"`
+	Latitude              float64   `json:"latitude,omitempty"`
+	Longitude             float64   `json:"longitude,omitempty"`
+	PatientLatitude       float64   `json:"patientLatitude,omitempty"`
+	PatientLongitude      float64   `json:"patientLongitude,omitempty"`
 }
