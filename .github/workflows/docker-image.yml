@@ -20,6 +20,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./api-gateway
+          context: .
           push: true
           tags: thspinsoft/sms-video-sfu-api-gateway-go:${{ github.head_ref || github.ref_name }}
