@@ -3,7 +3,6 @@ package router
 import (
 	"api-gateway-go/internal/config"
 	"api-gateway-go/internal/handler"
-	"api-gateway-go/internal/middleware"
 	"api-gateway-go/internal/repository"
 	"api-gateway-go/internal/service"
 
@@ -61,10 +60,10 @@ func SetupRoutes(
 	room.Get("/checkexpired", handlers.Room.CheckExpired)
 	room.Get("/verifytoken", handlers.Room.VerifyToken)
 	room.Get("/picture", handlers.Room.GetRoomPicture)
-	room.Post("/create", middleware.AuthMiddleware(authService), handlers.Room.CreateRoom)
-	room.Post("/updateuser", middleware.AuthMiddleware(authService), handlers.Room.UpdateUser)
-	room.Post("/deleteroom", middleware.AuthMiddleware(authService), handlers.Room.DeleteRoom)
-	room.Put("/updatetype", middleware.AuthMiddleware(authService), handlers.Room.UpdateType)
+	room.Post("/create", handlers.Room.CreateRoom)
+	room.Post("/updateuser", handlers.Room.UpdateUser)
+	room.Post("/deleteroom", handlers.Room.DeleteRoom)
+	room.Put("/updatetype", handlers.Room.UpdateType)
 	room.Put("/updatestatus", handlers.Room.UpdateStatus)
 	room.Put("/close", handlers.Room.CloseRoom)
 	room.Put("/recordstatus", handlers.Room.UpdateRecordStatus)
@@ -75,7 +74,7 @@ func SetupRoutes(
 	user.Get("/getuserdetail", handlers.User.GetUserDetail)
 	user.Get("/listparticipants", handlers.User.ListParticipants)
 	user.Get("/log", handlers.User.GetUserLog)
-	user.Post("/generate", middleware.OptionalAuthMiddleware(authService), handlers.User.GenerateUser)
+	user.Post("/generate", handlers.User.GenerateUser)
 	user.Post("/joingenerate", handlers.User.JoinGenerate)
 	user.Post("/generateChatUser", handlers.User.GenerateChatUser)
 	user.Post("/updateparticipants", handlers.User.UpdateParticipants)
@@ -90,8 +89,8 @@ func SetupRoutes(
 	link.Get("/share", handlers.Link.GetShareURL)
 	link.Get("/get/domain", handlers.Link.GetDomain)
 	link.Get("/list", handlers.Link.GetLinkList)
-	link.Post("/create", middleware.AuthMiddleware(authService), handlers.Link.CreateLink)
-	link.Post("/create/hls", middleware.AuthMiddleware(authService), handlers.Link.CreateHLSLink)
+	link.Post("/create", handlers.Link.CreateLink)
+	link.Post("/create/hls", handlers.Link.CreateHLSLink)
 	link.Post("/update/latlng", handlers.Link.UpdateLatLng)
 	link.Post("/multilatlng/send", handlers.Link.MultiLatLng)
 	link.Post("/cartracking", handlers.Link.CarTracking)
@@ -102,7 +101,7 @@ func SetupRoutes(
 	chat.Get("/notification", handlers.Chat.GetNotification)
 	chat.Get("/count", handlers.Chat.GetMessageCount)
 	chat.Post("/message", handlers.Chat.AddMessage)
-	chat.Delete("/messages", middleware.AuthMiddleware(authService), handlers.Chat.DeleteMessages)
+	chat.Delete("/messages", handlers.Chat.DeleteMessages)
 
 	// Notification routes
 	notification := app.Group("/notification")
@@ -114,7 +113,7 @@ func SetupRoutes(
 	notification.Post("/create", handlers.Notification.Create)
 	notification.Put("/read/:id", handlers.Notification.MarkAsRead)
 	notification.Put("/readall", handlers.Notification.MarkAllAsRead)
-	notification.Delete("/:id", middleware.AuthMiddleware(authService), handlers.Notification.Delete)
+	notification.Delete("/:id", handlers.Notification.Delete)
 
 	// Record routes
 	record := app.Group("/record")
@@ -125,9 +124,9 @@ func SetupRoutes(
 	record.Get("/filehistory", handlers.Record.GetFileHistory)
 	record.Get("/room", handlers.Record.GetRecordByRoom)
 	record.Get("/detail/:id", handlers.Record.GetRecordDetail)
-	record.Post("/start", middleware.AuthMiddleware(authService), handlers.Record.StartRecord)
-	record.Post("/stop", middleware.AuthMiddleware(authService), handlers.Record.StopRecord)
-	record.Post("/stopall", middleware.AuthMiddleware(authService), handlers.Record.StopAllActive)
+	record.Post("/start", handlers.Record.StartRecord)
+	record.Post("/stop", handlers.Record.StopRecord)
+	record.Post("/stopall", handlers.Record.StopAllActive)
 
 	// Car tracking routes
 	car := app.Group("/car")
@@ -140,7 +139,7 @@ func SetupRoutes(
 	car.Post("/task", handlers.Car.CreateTask)
 	car.Post("/position", handlers.Car.UpdatePosition)
 	car.Put("/task/:id", handlers.Car.UpdateTask)
-	car.Delete("/task/:id", middleware.AuthMiddleware(authService), handlers.Car.DeleteTask)
+	car.Delete("/task/:id", handlers.Car.DeleteTask)
 
 	// Case routes
 	caseRoutes := app.Group("/case")
@@ -151,10 +150,10 @@ func SetupRoutes(
 	caseRoutes.Get("/caseid/:caseId", handlers.Case.GetCaseByCaseID)
 	caseRoutes.Get("/room/:roomId", handlers.Case.GetCaseByRoomID)
 	caseRoutes.Get("/:id", handlers.Case.GetCaseByID)
-	caseRoutes.Post("/create", middleware.AuthMiddleware(authService), handlers.Case.CreateCase)
+	caseRoutes.Post("/create", handlers.Case.CreateCase)
 	caseRoutes.Put("/status/:caseId", handlers.Case.UpdateCaseStatus)
-	caseRoutes.Put("/:id", middleware.AuthMiddleware(authService), handlers.Case.UpdateCase)
-	caseRoutes.Delete("/:id", middleware.AuthMiddleware(authService), handlers.Case.DeleteCase)
+	caseRoutes.Put("/:id", handlers.Case.UpdateCase)
+	caseRoutes.Delete("/:id", handlers.Case.DeleteCase)
 
 	// Radio routes
 	radio := app.Group("/radio")
@@ -167,7 +166,7 @@ func SetupRoutes(
 	radio.Post("/location", handlers.Radio.CreateLocation)
 	radio.Put("/device/:id", handlers.Radio.UpdateDevice)
 	radio.Put("/device/location", handlers.Radio.UpdateDeviceLocation)
-	radio.Delete("/device/:id", middleware.AuthMiddleware(authService), handlers.Radio.DeleteDevice)
+	radio.Delete("/device/:id", handlers.Radio.DeleteDevice)
 
 	// Stats routes
 	stats := app.Group("/stats")
@@ -187,7 +186,8 @@ func SetupRoutes(
 	upload.Post("/video", handlers.Upload.UploadVideo)
 	upload.Post("/multiple", handlers.Upload.UploadMultiple)
 	upload.Get("/exists", handlers.Upload.CheckFileExists)
-	upload.Delete("/file", middleware.AuthMiddleware(authService), handlers.Upload.DeleteFile)
+	upload.Delete("/file", handlers.Upload.DeleteFile)
+	// upload.Delete("/file", middleware.AuthMiddleware(authService), handlers.Upload.DeleteFile)
 
 	// Webhook routes
 	webhook := app.Group("/webhook")
