@@ -3,7 +3,7 @@
 > แผนการแปลง API Gateway จาก Node.js Express เป็น Golang (Fiber)  
 > **วันที่สร้าง**: 2025-12-05  
 > **อัพเดทล่าสุด**: 2025-12-05  
-> **สถานะ**: 🚧 In Progress (Phase 1-5 Complete)
+> **สถานะ**: 🚧 In Progress (Phase 1-6 Complete)
 
 ---
 
@@ -16,7 +16,7 @@
 | **Phase 3** | HTTP Handlers (15 handlers)                                                | ✅ Complete |
 | **Phase 4** | Middleware & Routing (Auth, CORS, Logger, Router)                          | ✅ Complete |
 | **Phase 5** | WebSocket/Socket.IO Implementation                                         | ✅ Complete |
-| **Phase 6** | LiveKit Webhook Processing                                                 | ⏳ Pending  |
+| **Phase 6** | LiveKit Webhook Processing                                                 | ✅ Complete |
 | **Phase 7** | Testing & Integration                                                      | ⏳ Pending  |
 | **Phase 8** | Documentation & Deployment                                                 | ⏳ Pending  |
 
@@ -833,9 +833,16 @@ type CrossInstanceEventManager interface {
 
 ---
 
-## 🎯 Phase 6: LiveKit Webhook Handler (Week 6) ⏳ PENDING
+## 🎯 Phase 6: LiveKit Webhook Handler (Week 6) ✅ COMPLETE
 
-> **สถานะ**: ⚠️ Basic webhook handler implemented, needs enhancement
+> **สถานะ**: ✅ Enhanced webhook handler implemented with:
+>
+> - Token validation support
+> - Auto-recording detection and trigger
+> - Track data management for TrackComposite recordings
+> - Inactivity timer management
+> - Socket.IO broadcast integration
+> - Cleanup methods for proper resource management
 
 ### 6.1 Webhook Events ที่ต้อง Handle
 
